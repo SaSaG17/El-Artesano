@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>E L - A R T E S A N O </title>
+	<!-- Favicon -->
+	<link href="img/favicon.ico" rel="icon">
+
+	<!-- Google Web Fonts -->
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rubik&display=swap"
+		rel="stylesheet">
+
+	<!-- Font Awesome -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+
+	<!-- Libraries Stylesheet -->
+	<link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+	<link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+	<!-- Customized Bootstrap Stylesheet -->
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+	<!-- Template Stylesheet -->
+	<link href="css/style.css" rel="stylesheet">
+	<script th:src="@{/js/carrito.js}"></script>
+
+</head>
+<script>
+	//Variable que mantiene el estado visible del carrito
+	var carritoVisible = false;
+
+	//Espermos que todos los elementos de la pàgina cargen para ejecutar el script
+	if (document.readyState == 'loading') {
+		document.addEventListener('DOMContentLoaded', ready)
+	} else {
+		ready();
+	}
+
+	function ready() {
+
+		//Agregremos funcionalidad a los botones eliminar del carrito
+		var botonesEliminarItem = document.getElementsByClassName('btn-eliminar');
+		for (var i = 0; i < botonesEliminarItem.length; i++) {
+			var button = botonesEliminarItem[i];
+			button.addEventListener('click', eliminarItemCarrito);
+		}
+
+		//Agrego funcionalidad al boton sumar cantidad
+		var botonesSumarCantidad = document.getElementsByClassName('sumar-cantidad');
+		for (var i = 0; i < botonesSumarCantidad.length; i++) {
+			var button = botonesSumarCantidad[i];
+			button.addEventListener('click', sumarCantidad);
+		}
+
+		//Agrego funcionalidad al buton restar cantidad
+		var botonesRestarCantidad = document.getElementsByClassName('restar-cantidad');
+		for (var i = 0; i < botonesRestarCantidad.length; i++) {
+			var button = botonesRestarCantidad[i];
+			button.addEventListener('click', restarCantidad);
+		}
+
+		//Agregamos funcionalidad al boton Agregar al carrito
+		var botonesAgregarAlCarrito = document.getElementsByClassName('boton-item');
+		for (var i = 0; i < botonesAgregarAlCarrito.length; i++) {
+			var button = botonesAgregarAlCarrito[i];
+			button.addEventListener('click', agregarAlCarritoClicked);
+		}
+
+		//Agregamos funcionalidad al botón comprar
+		document.getElementsByClassName('btn-pagar')[0].addEventListener('click', pagarClicked)
+	}
+	//Eliminamos todos los elementos del carrito y lo ocultamos
+	function pagarClicked() {
+		alert("Gracias por la compra");
+		//Elimino todos los elmentos del carrito
+		var carritoItems = document.getElementsByClassName('carrito-items')[0];
+		while (carritoItems.hasChildNodes()) {
+			carritoItems.removeChild(carritoItems.firstChild)
+		}
+		actualizarTotalCarrito();
+		ocultarCarrito();
+	}
+	//Funciòn que controla el boton clickeado de agregar al carrito
+	function agregarAlCarritoClicked(event) {
+		var button = event.target;
+		var item = button.parentElement;
+		var titulo = item.getElementsByClassName('titulo-item')[0].innerText;
+		var precio = item.getElementsByClassName('precio-item')[0].innerText;
+		var imagenSrc = item.getElementsByClassName('img-item')[0].src;
+		console.log(imagenSrc);
+
+		agregarItemAlCarrito(titulo, precio, imagenSrc);
+
+		hacerVisibleCarrito();
+	}
+
+	//Funcion que hace visible el carrito
+	function hacerVisibleCarrito() {
+		carritoVisible = true;
+		var carrito = document.getElementsByClassName('carrito')[0];
+		carrito.style.marginRight = '0';
+		carrito.style.opacity = '1';
+
+		var items = document.getElementsByClassName('contenedor-items')[0];
+		items.style.width = '60%';
+	}
+
+	//Funciòn que agrega un item al carrito
+	function agregarItemAlCarrito(titulo, precio, imagenSrc) {
+		var item = document.createElement('div');
+		item.classList.add = ('item');
+		var itemsCarrito = document.getElementsByClassName('carrito-items')[0];
+
+		//controlamos que el item que intenta ingresar no se encuentre en el carrito
+		var nombresItemsCarrito = itemsCarrito.getElementsByClassName('carrito-item-titulo');
+		for (var i = 0; i < nombresItemsCarrito.length; i++) {
+			if (nombresItemsCarrito[i].innerText == titulo) {
+				alert("El item ya se encuentra en el carrito");
+				return;
+			}
+		}
+
+		var itemCarritoContenido = `
+        <div class="carrito-item">
+            <img src="${imagenSrc}" width="80px" alt="">
+            <div class="carrito-item-detalles">
+                <span class="carrito-item-titulo">${titulo}</span>
+                <div class="selector-cantidad">
+                    <i class="fa-solid fa-minus restar-cantidad"></i>
+                    <input type="text" value="1" class="carrito-item-cantidad" disabled>
+                    <i class="fa-solid fa-plus sumar-cantidad"></i>
+                </div>
+                <span class="carrito-item-precio">${precio}</span>
+            </div>
+            <button class="btn-eliminar">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `
+		item.innerHTML = itemCarritoContenido;
+		itemsCarrito.append(item);
+
+		//Agregamos la funcionalidad eliminar al nuevo item
+		item.getElementsByClassName('btn-eliminar')[0].addEventListener('click', eliminarItemCarrito);
+
+		//Agregmos al funcionalidad restar cantidad del nuevo item
+		var botonRestarCantidad = item.getElementsByClassName('restar-cantidad')[0];
+		botonRestarCantidad.addEventListener('click', restarCantidad);
+
+		//Agregamos la funcionalidad sumar cantidad del nuevo item
+		var botonSumarCantidad = item.getElementsByClassName('sumar-cantidad')[0];
+		botonSumarCantidad.addEventListener('click', sumarCantidad);
+
+		//Actualizamos total
+		actualizarTotalCarrito();
+	}
+	//Aumento en uno la cantidad del elemento seleccionado
+	function sumarCantidad(event) {
+		var buttonClicked = event.target;
+		var selector = buttonClicked.parentElement;
+		console.log(selector.getElementsByClassName('carrito-item-cantidad')[0].value);
+		var cantidadActual = selector.getElementsByClassName('carrito-item-cantidad')[0].value;
+		cantidadActual++;
+		selector.getElementsByClassName('carrito-item-cantidad')[0].value = cantidadActual;
+		actualizarTotalCarrito();
+	}
+	//Resto en uno la cantidad del elemento seleccionado
+	function restarCantidad(event) {
+		var buttonClicked = event.target;
+		var selector = buttonClicked.parentElement;
+		console.log(selector.getElementsByClassName('carrito-item-cantidad')[0].value);
+		var cantidadActual = selector.getElementsByClassName('carrito-item-cantidad')[0].value;
+		cantidadActual--;
+		if (cantidadActual >= 1) {
+			selector.getElementsByClassName('carrito-item-cantidad')[0].value = cantidadActual;
+			actualizarTotalCarrito();
+		}
+	}
+
+	//Elimino el item seleccionado del carrito
+	function eliminarItemCarrito(event) {
+		var buttonClicked = event.target;
+		buttonClicked.parentElement.parentElement.remove();
+		//Actualizamos el total del carrito
+		actualizarTotalCarrito();
+
+		//la siguiente funciòn controla si hay elementos en el carrito
+		//Si no hay elimino el carrito
+		ocultarCarrito();
+	}
+	//Funciòn que controla si hay elementos en el carrito. Si no hay oculto el carrito.
+	function ocultarCarrito() {
+		var carritoItems = document.getElementsByClassName('carrito-items')[0];
+		if (carritoItems.childElementCount == 0) {
+			var carrito = document.getElementsByClassName('carrito')[0];
+			carrito.style.marginRight = '-100%';
+			carrito.style.opacity = '0';
+			carritoVisible = false;
+
+			var items = document.getElementsByClassName('contenedor-items')[0];
+			items.style.width = '100%';
+		}
+	}
+	//Actualizamos el total de Carrito
+	function actualizarTotalCarrito() {
+		//seleccionamos el contenedor carrito
+		var carritoContenedor = document.getElementsByClassName('carrito')[0];
+		var carritoItems = carritoContenedor.getElementsByClassName('carrito-item');
+		var total = 0;
+		//recorremos cada elemento del carrito para actualizar el total
+		for (var i = 0; i < carritoItems.length; i++) {
+			var item = carritoItems[i];
+			var precioElemento = item.getElementsByClassName('carrito-item-precio')[0];
+			//quitamos el simobolo peso y el punto de milesimos.
+			var precio = parseFloat(precioElemento.innerText.replace('$', '').replace('.', ''));
+			var cantidadItem = item.getElementsByClassName('carrito-item-cantidad')[0];
+			console.log(precio);
+			var cantidad = cantidadItem.value;
+			total = total + (precio * cantidad);
+		}
+		total = Math.round(total * 10) / 100;
+
+		document.getElementsByClassName('carrito-precio-total')[0].innerText = '$' + total.toLocaleString("es") + ",00";
+
+	}
+
+</script>
+
+<body>
+	<!-- Topbar Start -->
+	<div class="container-fluid bg-dark py-3 px-lg-5 d-none d-lg-block">
+		<div class="row">
+			<div class="col-md-6 text-center text-lg-left mb-2 mb-lg-0">
+				<div class="d-inline-flex align-items-center">
+					<a class="text-body pr-3" href=""><i class="fa fa-phone-alt mr-2"></i>+012 345 6789</a>
+					<span class="text-body">|</span>
+					<a class="text-body px-3" href=""><i class="fa fa-envelope mr-2"></i>ElArtesano@gmail.com</a>
+				</div>
+			</div>
+			<div class="col-md-6 text-center text-lg-right">
+				<div class="d-inline-flex align-items-center">
+					<a class="text-body px-3" href="">
+						<i class="fab fa-facebook-f"></i>
+					</a>
+					<a class="text-body px-3" href="">
+						<i class="fab fa-twitter"></i>
+					</a>
+					<a class="text-body px-3" href="">
+						<i class="fab fa-linkedin-in"></i>
+					</a>
+					<a class="text-body px-3" href="">
+						<i class="fab fa-instagram"></i>
+					</a>
+					<a class="text-body pl-3" href="">
+						<i class="fab fa-youtube"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Topbar End -->
+
+
+	<!-- Navbar Start -->
+	<div class="container-fluid position-relative nav-bar p-0">
+		<div class="position-relative px-lg-5" style="z-index: 9;">
+			<nav class="navbar navbar-expand-lg bg-secondary navbar-dark py-3 py-lg-0 pl-3 pl-lg-5">
+				<a href="" class="navbar-brand">
+					<h1 class="text-uppercase text-primary mb-1">E L - A R T E S A N O </h1>
+				</a>
+				<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse justify-content-between px-3" id="navbarCollapse">
+					<div class="navbar-nav ml-auto py-0">
+						<a href="/" class="nav-item nav-link active">Home</a>
+						<a href="/" class="nav-item nav-link">Cerrar</a>
+
+					</div>
+				</div>
+		</div>
+	</div>
+
+
+	</nav>
+
+	<!-- concatenacion Start -->
+	<div class="container-fluid py-5">
+		<div class="container pt-5 pb-3">
+			<h5 class="text-primary text-center">! Administracion !</h5>
+			<h1 class="display-4 text-uppercase text-center mb-5">PLATOS EN MENU</h1>
+
+			<div class="col-lg-4 col-md-10 mb-2">
+				<form th:action="@{/buscar}" method="get">
+					<input type="text" class="form-style " name="nombre" placeholder="Buscar por nombre"><br> <br>
+					<button type="submit" class="btn btn-primary ">Buscar</button>
+				</form>
+			</div>
+
+
+
+			<div class="row contenedor-items">
+				<div class="col-lg-4 col-md-6 mb-2 item" th:each="plato : ${platos}">
+					<div class="rent-item mb-4">
+						<button class="boton-item" style="display: flex; align-items: center;">
+							<img class="img-item" src="https://cdn-icons-png.flaticon.com/128/4202/4202388.png"
+								alt="Carrito" style="width: 20px; height: auto;margin-right: 10px;">
+							+
+						</button><br><br>
+						<img class="img-fluid mb-4 item" th:src="${plato.imagenURL}" alt="">
+						<h4 class="text-uppercase mb-4">
+							<p>Nombre: <span class="titulo-item" th:text="${plato.nombre}"></span></p>
+						</h4>
+						<div class="d-flex justify-content-center mb-4">
+							<p><label>Descripción: <span th:text="${plato.descripcion}"></span></label></p>
+							<p><label>Precio: <span class="precio-item" th:text="${plato.precio}"></span></label></p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- Carrito de Compras -->
+		<div class="carrito" id="carrito">
+			<div class="header-carrito">
+				<h2>Tu Carrito</h2>
+			</div>
+
+			<div class="carrito-items">
+			</div>
+			<div class="carrito-total">
+				<div class="fila">
+					<strong>Tu Total</strong>
+					<span class="carrito-precio-total">
+						$120.000,00
+					</span>
+				</div>
+				<button class="btn-pagar">Pagar <i class="fa-solid fa-bag-shopping"></i> </button>
+			</div>
+		</div>
+
+	</div>
+
+
+
+	<!-- Concatenacion End -->
+
+	<!-- Footer Start -->
+	<div class="footer container-fluid position-relative bg-dark py-5" style="margin-top: 90px;">
+		<div class="container pt-5">
+			<div class="row">
+				<div class="col-lg-6 pr-lg-5 mb-5">
+					<a href="/inicio" class="navbar-brand">
+						<h1 class="mb-3 text-white">El <span class="text-primary"> ARTESANO</span></h1>
+					</a>
+					<p> Sandra Milena Albarracin Gualdron </p>
+					<p>Slendy Xiomara Cancino Rincon</p>
+					<p><i class="fa fa-map-marker-alt mr-2"></i>Bucaramanga - Colombia</p>
+					<p><i class="fa fa-phone-alt mr-2"></i>+012 345 67890</p>
+					<p><i class="fa fa-envelope mr-2"></i>GyraLeague@gmail.com</p>
+					<div class="d-flex justify-content-start mt-4">
+						<a class="btn btn-lg btn-primary btn-lg-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+						<a class="btn btn-lg btn-primary btn-lg-square mr-2" href="#"><i
+								class="fab fa-facebook-f"></i></a>
+						<a class="btn btn-lg btn-primary btn-lg-square mr-2" href="#"><i
+								class="fab fa-linkedin-in"></i></a>
+						<a class="btn btn-lg btn-primary btn-lg-square" href="#"><i class="fab fa-instagram"></i></a>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<div class="container-fluid bg-dark text-light border-top py-4"
+		style="border-color: rgba(256, 256, 256, .15) !important;">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6 text-center text-md-left mb-3 mb-md-0">
+					<p class="m-0 text-white">&copy; <a href="#">EL-ARTESANO</a>. Delicioso .</p>
+				</div>
+				<div class="col-md-6 text-center text-md-right">
+					<p class="m-0 text-white">Designed by HTML Codex</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Footer End -->
+
+	<!-- Back to Top -->
+	<a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+
+	<!-- JavaScript Libraries -->
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+	<script src="lib/easing/easing.min.js"></script>
+	<script src="lib/waypoints/waypoints.min.js"></script>
+	<script src="lib/owlcarousel/owl.carousel.min.js"></script>
+	<script src="lib/tempusdominus/js/moment.min.js"></script>
+	<script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+	<script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+	<!-- Template Javascript -->
+	<script src="js/main.js"></script>
+</body>
+
+</html>
